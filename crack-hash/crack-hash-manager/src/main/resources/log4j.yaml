@@ -1,0 +1,12 @@
+Configuration:
+  name: Default
+  Appenders:
+    Console:
+      name: ConsoleAppender
+      PatternLayout:
+        pattern: "%highlight{%-5level %d{yyyy-MM-dd HH:mm:ss.SSS} %c.%M() - %msg%n}{FATAL=red bold, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue, TRACE=blue}"
+  Loggers:
+    Root:
+      level: debug
+      AppenderRef:
+        - ref: ConsoleAppender
