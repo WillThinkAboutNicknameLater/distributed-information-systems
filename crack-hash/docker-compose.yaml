@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  eureka-server:
+    image: crackhash/eureka-server:0.0.1-SNAPSHOT
+    container_name: crack-hash-eureka-server
+    ports:
+      - '8761:8761'
+    networks:
+      - crack-hash-network
+
+  manager:
+    image: crackhash/crack-hash-manager:0.0.1-SNAPSHOT
+    container_name: crack-hash-manager
+    ports:
+      - '8080:8080'
+    environment:
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      TIMEOUT: 120
+    networks:
+      - crack-hash-network
+    restart: on-failure
+
+  worker:
+    image: crackhash/crack-hash-worker:0.0.1-SNAPSHOT
+    environment:
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+    networks:
+      - crack-hash-network
+    restart: on-failure
+    deploy:
+      mode: replicated
+      replicas: 4
+
+networks:
+  crack-hash-network:
