@@ -19,7 +19,6 @@ services:
       TIMEOUT: 120
     networks:
       - crack-hash-network
-    restart: on-failure
 
   worker:
     image: crackhash/crack-hash-worker:0.0.1-SNAPSHOT
@@ -27,7 +26,6 @@ services:
       EUREKA_SERVER_URL: http://eureka-server:8761/eureka
     networks:
       - crack-hash-network
-    restart: on-failure
     deploy:
       mode: replicated
       replicas: 4
