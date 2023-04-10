@@ -1,34 +1,111 @@
 version: '3'
 
 services:
-  eureka-server:
-    image: crackhash/eureka-server:0.0.1-SNAPSHOT
-    container_name: crack-hash-eureka-server
-    ports:
-      - '8761:8761'
-    networks:
-      - crack-hash-network
-
   manager:
     image: crackhash/crack-hash-manager:0.0.1-SNAPSHOT
     container_name: crack-hash-manager
     ports:
       - '8080:8080'
-    environment:
-      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
-      TIMEOUT: 120
+    env_file:
+      - .manager.env
+      - .service-rabbitmq.env
     networks:
       - crack-hash-network
 
   worker:
     image: crackhash/crack-hash-worker:0.0.1-SNAPSHOT
-    environment:
-      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+    env_file:
+      - .service-rabbitmq.env
     networks:
       - crack-hash-network
     deploy:
       mode: replicated
-      replicas: 4
+      replicas: 3
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: crack-hash-rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    env_file:
+      - .rabbitmq.env
+    networks:
+      - crack-hash-network
+
+  mongodb-1:
+    image: mongo:6.0
+    container_name: mongodb-1
+    ports:
+      - '27017:27017'
+    env_file:
+      - .mongodb.env
+    volumes:
+      - mongodb-1-data:/data/db
+      - ./mongo-settings/key:/data/key
+    networks:
+      - crack-hash-network
+    command: mongod --replSet dbrs --bind_ip_all --keyFile /data/key
+
+  mongodb-2:
+    image: mongo:6.0
+    container_name: mongodb-2
+    ports:
+      - '27018:27017'
+    env_file:
+      - .mongodb.env
+    volumes:
+      - mongodb-2-data:/data/db
+      - ./mongo-settings/key:/data/key
+    networks:
+      - crack-hash-network
+    command: mongod --replSet dbrs --bind_ip_all --keyFile /data/key
+
+  mongodb-3:
+    image: mongo:6.0
+    container_name: mongodb-3
+    ports:
+      - '27019:27017'
+    env_file:
+      - .mongodb.env
+    volumes:
+      - mongodb-3-data:/data/db
+      - ./mongo-settings/key:/data/key
+    networks:
+      - crack-hash-network
+    command: mongod --replSet dbrs --bind_ip_all --keyFile /data/key
+
+  mongodb-setup:
+    image: mongo:6.0
+    container_name: mongodb-setup
+    env_file:
+      - .mongodb.env
+    volumes:
+      - ./mongo-settings/rs-init.sh:/scripts/rs-init.sh
+    networks:
+      - crack-hash-network
+    depends_on:
+      - mongodb-1
+      - mongodb-2
+      - mongodb-3
+    command: bash -c /scripts/rs-init.sh
+
+  mongo-express:
+    image: mongo-express:1.0.0-alpha
+    container_name: mongo-express
+    ports:
+      - '8081:8081'
+    env_file:
+      - .mongo-express.env
+    networks:
+      - crack-hash-network
+    depends_on:
+      - mongodb-1
+
+volumes:
+  mongodb-1-data:
+  mongodb-2-data:
+  mongodb-3-data:
 
 networks:
   crack-hash-network:
