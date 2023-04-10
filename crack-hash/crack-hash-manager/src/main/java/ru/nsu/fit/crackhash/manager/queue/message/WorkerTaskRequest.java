@@ -1,5 +1,5 @@
 
-package ru.nsu.fit.crackhash.manager.dto.request;
+package ru.nsu.fit.crackhash.manager.queue.message;
 
 import jakarta.xml.bind.annotation.*;
 import lombok.AllArgsConstructor;
@@ -7,7 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Builder
 @NoArgsConstructor
@@ -23,9 +24,9 @@ import java.util.List;
         "alphabet"
 })
 @XmlRootElement(name = "CrackHashManagerRequest", namespace = "http://ccfit.nsu.ru/schema/crack-hash-request")
-public class CrackHashManagerRequest {
+public class WorkerTaskRequest {
     @XmlElement(name = "RequestId", required = true)
-    private String requestId;
+    private UUID requestId;
 
     @XmlElement(name = "PartNumber", required = true)
     private int partNumber;
@@ -52,6 +53,6 @@ public class CrackHashManagerRequest {
     })
     public static class Alphabet {
         @XmlElement(name = "Symbols", required = true)
-        private List<String> symbols;
+        private Set<String> symbols;
     }
 }
