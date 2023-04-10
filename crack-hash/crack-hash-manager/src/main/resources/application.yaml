@@ -4,14 +4,23 @@ server:
 spring:
   application:
     name: crack-hash-manager
-
-eureka:
-  instance:
-    instance-id: ${spring.application.name}:${random.uuid}
-  client:
-    service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
-    should-enforce-registration-at-init: true
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
 
 crack-hash:
-  timeout-in-sec: ${TIMEOUT}
+  number-of-task-parts: ${NUMBER_OF_TASK_PARTS:10}
+  rabbitmq:
+    exchange:
+      direct: ${RABBIT_DIRECT_EXCHANGE}
+    route:
+      manager: ${RABBIT_MANAGER_ROUTE}
+      worker: ${RABBIT_WORKER_ROUTE}
+    queue:
+      manager: ${RABBIT_MANAGER_QUEUE}
+      worker: ${RABBIT_WORKER_QUEUE}
