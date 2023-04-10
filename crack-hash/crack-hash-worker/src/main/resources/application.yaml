@@ -4,12 +4,19 @@ server:
 spring:
   application:
     name: crack-hash-worker
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
 
-eureka:
-  instance:
-    instance-id: ${spring.application.name}:${random.uuid}
-    lease-renewal-interval-in-seconds: 10
-  client:
-    service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
-    should-enforce-registration-at-init: true
+crack-hash:
+  rabbitmq:
+    exchange:
+      direct: ${RABBIT_DIRECT_EXCHANGE}
+    route:
+      manager: ${RABBIT_MANAGER_ROUTE}
+      worker: ${RABBIT_WORKER_ROUTE}
+    queue:
+      manager: ${RABBIT_MANAGER_QUEUE}
+      worker: ${RABBIT_WORKER_QUEUE}
