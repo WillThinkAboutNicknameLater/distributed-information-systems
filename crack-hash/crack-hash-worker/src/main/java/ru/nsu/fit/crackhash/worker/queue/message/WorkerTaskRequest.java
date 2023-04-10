@@ -1,11 +1,18 @@
 
-package ru.nsu.fit.crackhash.worker.dto.request;
+package ru.nsu.fit.crackhash.worker.queue.message;
 
 import jakarta.xml.bind.annotation.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
@@ -17,9 +24,9 @@ import java.util.List;
         "alphabet"
 })
 @XmlRootElement(name = "CrackHashManagerRequest", namespace = "http://ccfit.nsu.ru/schema/crack-hash-request")
-public class CrackHashRequest {
+public class WorkerTaskRequest {
     @XmlElement(name = "RequestId", required = true)
-    private String requestId;
+    private UUID requestId;
 
     @XmlElement(name = "PartNumber", required = true)
     private int partNumber;
@@ -36,6 +43,9 @@ public class CrackHashRequest {
     @XmlElement(name = "Alphabet", required = true)
     private Alphabet alphabet;
 
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     @Data
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlType(name = "", propOrder = {
@@ -43,6 +53,6 @@ public class CrackHashRequest {
     })
     public static class Alphabet {
         @XmlElement(name = "Symbols", required = true)
-        private List<String> symbols;
+        private Set<String> symbols;
     }
 }
