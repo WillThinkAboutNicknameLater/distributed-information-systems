@@ -52,8 +52,6 @@ public class HashService {
 
         UUID requestId = request.getId();
 
-        log.info("Request #{}. Number of task parts: {}", requestId, numberOfTaskParts);
-
         sendTaskToWorkers(requestId, crackHashRequest);
 
         return CrackHashResponse.builder()
@@ -71,6 +69,8 @@ public class HashService {
     }
 
     private void sendTaskToWorkers(UUID requestId, CrackHashRequest crackHashRequest) {
+        log.info("Request #{}. Number of task parts: {}", requestId, numberOfTaskParts);
+
         for (int partNumber = 0; partNumber < numberOfTaskParts; ++partNumber) {
             WorkerTaskRequest workerTaskRequest = WorkerTaskRequest.builder()
                                                                    .requestId(requestId)
@@ -84,6 +84,8 @@ public class HashService {
             try {
                 workerTaskProducer.sendTask(workerTaskRequest);
             } catch (AmqpException e) {
+                log.info("Request #{}. Deferring part #{}", requestId, partNumber);
+
                 DeferredTask deferredTask = taskMapper.map(workerTaskRequest);
                 deferredTaskService.deferTask(deferredTask);
             }
