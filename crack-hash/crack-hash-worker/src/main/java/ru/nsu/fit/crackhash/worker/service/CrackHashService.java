@@ -4,36 +4,36 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.paukov.combinatorics3.Generator;
 import org.springframework.stereotype.Service;
-import ru.nsu.fit.crackhash.worker.dto.request.CrackHashRequest;
-import ru.nsu.fit.crackhash.worker.dto.response.WorkerResponse;
+import ru.nsu.fit.crackhash.worker.queue.message.WorkerResultResponse;
+import ru.nsu.fit.crackhash.worker.queue.message.WorkerTaskRequest;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Slf4j
 @Service
 public class CrackHashService {
-    public WorkerResponse crackHash(CrackHashRequest crackHashRequest) {
-        List<String> data = new ArrayList<>();
+    public WorkerResultResponse crackHash(WorkerTaskRequest workerTask) {
+        Set<String> data = new HashSet<>();
 
-        long totalNumberOfCombinations = crackHashRequest.getAlphabet().getSymbols().size();
+        long totalNumberOfCombinations = workerTask.getAlphabet().getSymbols().size();
 
         long numberOfChecks = 0;
 
-        for (int length = 1; length <= crackHashRequest.getMaxLength(); ++length) {
-            long numberOfCombinations = totalNumberOfCombinations / crackHashRequest.getPartCount();
-            long numberOfCombinationsToSkip = crackHashRequest.getPartNumber() * numberOfCombinations;
-            if (crackHashRequest.getPartNumber() == crackHashRequest.getPartCount() - 1) {
-                numberOfCombinations += totalNumberOfCombinations % crackHashRequest.getPartCount();
+        for (int length = 1; length <= workerTask.getMaxLength(); ++length) {
+            long numberOfCombinations = totalNumberOfCombinations / workerTask.getPartCount();
+            long numberOfCombinationsToSkip = workerTask.getPartNumber() * numberOfCombinations;
+            if (workerTask.getPartNumber() == workerTask.getPartCount() - 1) {
+                numberOfCombinations += totalNumberOfCombinations % workerTask.getPartCount();
             }
 
-            log.info("Worker #{}. Job #{}. Range: [{}, {}]",
-                     crackHashRequest.getPartNumber(),
-                     crackHashRequest.getRequestId(),
+            log.info("Request #{}. Hash calculation. Part #{}. Range: [{}, {}]",
+                     workerTask.getRequestId(),
+                     workerTask.getPartNumber(),
                      numberOfCombinationsToSkip,
                      numberOfCombinationsToSkip + numberOfCombinations - 1);
 
-            Generator.permutation(crackHashRequest.getAlphabet().getSymbols())
+            Generator.permutation(workerTask.getAlphabet().getSymbols().stream().sorted().toList())
                      .withRepetitions(length)
                      .stream()
                      .skip(numberOfCombinationsToSkip)
@@ -42,24 +42,24 @@ public class CrackHashService {
                          String string = String.join("", combination);
                          String hash = DigestUtils.md5Hex(string);
 
-                         if (crackHashRequest.getHash().equals(hash)) {
+                         if (workerTask.getHash().equals(hash)) {
                              data.add(string);
                          }
                      });
 
-            totalNumberOfCombinations *= crackHashRequest.getAlphabet().getSymbols().size();
+            totalNumberOfCombinations *= workerTask.getAlphabet().getSymbols().size();
             numberOfChecks += numberOfCombinations;
         }
 
-        log.info("Worker #{}. Job #{}. Number of checks: {}",
-                 crackHashRequest.getPartNumber(),
-                 crackHashRequest.getRequestId(),
+        log.info("Request #{}. Hash calculation. Part #{}. Number of checks: {}",
+                 workerTask.getRequestId(),
+                 workerTask.getPartNumber(),
                  numberOfChecks);
 
-        return WorkerResponse.builder()
-                             .requestId(crackHashRequest.getRequestId())
-                             .partNumber(crackHashRequest.getPartNumber())
-                             .answers(new WorkerResponse.Answers(data))
-                             .build();
+        return WorkerResultResponse.builder()
+                                   .requestId(workerTask.getRequestId())
+                                   .partNumber(workerTask.getPartNumber())
+                                   .answers(WorkerResultResponse.Answers.builder().words(data).build())
+                                   .build();
     }
 }
